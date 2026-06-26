@@ -1,0 +1,54 @@
+{% extends "tienda/base.html" %}
+{% block title %}Editar Perfil{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1><i class="bi bi-pencil-square text-danger me-2"></i>Editar Perfil</h1>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4">
+        <form method="POST" id="perfil-form" novalidate>
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold small text-uppercase">Nombre <span class="text-danger">*</span></label>
+                    <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" required maxlength="50" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}" title="Solo letras y espacios (2-50 caracteres)">
+                    <div class="form-text">Solo letras y espacios</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold small text-uppercase">Apellidos <span class="text-danger">*</span></label>
+                    <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" required maxlength="50" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}" title="Solo letras y espacios (2-50 caracteres)">
+                    <div class="form-text">Solo letras y espacios</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold small text-uppercase">Email <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control" value="{{ user.email }}" required maxlength="254" pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" title="Email válido">
+                    <div class="form-text">Email válido requerido</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold small text-uppercase">Teléfono</label>
+                    <input type="tel" name="telefono" class="form-control" value="{{ perfil.telefono }}" placeholder="+34 600 000 000" maxlength="20" pattern="^\+?[1-9]\d{1,14}$" title="Formato: +34 600 000 000">
+                    <div class="form-text">Opcional. Formato internacional</div>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold small text-uppercase">Dirección</label>
+                    <textarea name="direccion" class="form-control" rows="2" placeholder="Calle, número, ciudad, código postal">{{ perfil.direccion }}</textarea>
+                    <div class="form-text">Opcional</div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold small text-uppercase">Fecha de Nacimiento</label>
+                    <input type="date" name="fecha_nacimiento" class="form-control" value="{{ perfil.fecha_nacimiento|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
+                    <div class="form-text">Opcional</div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'perfil' %}" class="btn btn-outline-secondary px-4">Cancelar</a>
+                <button type="submit" class="btn btn-danger px-4 fw-bold">
+                    <i class="bi bi-check-lg me-1"></i>Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

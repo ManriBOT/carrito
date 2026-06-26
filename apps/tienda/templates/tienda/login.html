@@ -1,70 +1,313 @@
 {% extends "tienda/base.html" %}
+{% load static %}
 {% block title %}{{ modo|title }}{% endblock %}
 {% block content %}
-<div class="auth-wrapper">
-    <div class="auth-card">
-        <div class="auth-card-header">
-            <div class="auth-icon rounded-0">
-                <i class="bi {% if modo == 'login' %}bi-box-arrow-in-right{% else %}bi-person-plus-fill{% endif %}"></i>
+<div class="auth-split-wrapper">
+    <!-- Lado Izquierdo: Diseño de Camisa -->
+    <div class="auth-visual-side d-none d-lg-flex">
+        <div class="shirt-showcase">
+            <div class="shirt-container">
+                <div class="shirt">
+                    <div class="shirt-collar"></div>
+                    <div class="shirt-body">
+                        <div class="shirt-sleeve left"></div>
+                        <div class="shirt-sleeve right"></div>
+                        <div class="shirt-pattern"></div>
+                        <div class="shirt-buttons">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="shirt-shadow"></div>
             </div>
-            <h4>
-                {% if modo == 'login' %}Bienvenido de nuevo{% else %}Únete a nosotros{% endif %}
-            </h4>
-            <p class="text-muted small mb-0">
-                {% if modo == 'login' %}Ingresa tus credenciales{% else %}Crea tu cuenta gratuita{% endif %}
-            </p>
+            <div class="showcase-content">
+                <div class="brand-badge">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    RED ESTAMPACION
+                </div>
+                <h1 class="showcase-title">
+                    {% if modo == 'login' %}Bienvenido de nuevo{% else %}Únete a la comunidad{% endif %}
+                </h1>
+                <p class="showcase-text">
+                    {% if modo == 'login' %}
+                    Diseña, crea y viste tu estilo único.
+                    Ingresa para continuar tu experiencia.
+                    {% else %}
+                    Crea tu cuenta y comienza a diseñar
+                    camisetas personalizadas hoy mismo.
+                    {% endif %}
+                </p>
+                <div class="showcase-features">
+                    <div class="feature-item">
+                        <i class="bi bi-palette-fill"></i>
+                        <span>Diseños únicos</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-truck"></i>
+                        <span>Envío rápido</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Calidad premium</span>
+                    </div>
+                </div>
+                <div class="switch-mode">
+                    {% if modo == 'login' %}
+                    <span>¿No tienes cuenta?</span>
+                    <a href="{% url 'register' %}">Regístrate gratis</a>
+                    {% else %}
+                    <span>¿Ya tienes cuenta?</span>
+                    <a href="{% url 'login' %}">Inicia sesión</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
+    </div>
 
-        <div class="auth-card-body">
-            <form method="POST">
+    <!-- Lado Derecho: Formulario -->
+    <div class="auth-form-side">
+        <div class="auth-form-container">
+            <div class="mobile-brand d-lg-none">
+                <i class="bi bi-lightning-charge-fill text-danger"></i>
+                <span class="fw-bold">RED ESTAMPACION</span>
+            </div>
+
+            <div class="auth-header">
+                <div class="auth-icon">
+                    <i class="bi {% if modo == 'login' %}bi-box-arrow-in-right{% else %}bi-person-plus-fill{% endif %}"></i>
+                </div>
+                <h2>{% if modo == 'login' %}Iniciar Sesión{% else %}Crear Cuenta{% endif %}</h2>
+                <p class="text-muted">
+                    {% if modo == 'login' %}Ingresa tus credenciales{% else %}Completa tus datos para registrarte{% endif %}
+                </p>
+            </div>
+
+            <form method="POST" id="auth-form" novalidate>
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
-                    <div class="alert alert-danger rounded-0 py-2 small fw-semibold d-flex align-items-center">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                        <span>
-                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-                        </span>
+                    <div class="alert alert-danger auth-alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        {% for error in form.non_field_errors %}{{ error }}{% endfor %}
                     </div>
                 {% endif %}
 
                 {% for field in form %}
-                    <div class="mb-3">
-                        <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    <div class="form-group mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
                         {{ field }}
                         {% if field.errors %}
-                            <div class="mt-1">
+                            <div class="invalid-feedback d-block">
                                 {% for error in field.errors %}
-                                    <small class="text-danger d-flex align-items-center mt-1">
-                                        <i class="bi bi-exclamation-circle me-1"></i>{{ error }}
-                                    </small>
+                                    <i class="bi bi-exclamation-circle"></i> {{ error }}
                                 {% endfor %}
                             </div>
                         {% endif %}
-                        {% if field.help_text and modo == 'registro' %}
-                            <small class="text-muted d-block mt-1">{{ field.help_text|safe }}</small>
+                        {% if field.help_text %}
+                            <div class="form-text">{{ field.help_text|safe }}</div>
                         {% endif %}
                     </div>
                 {% endfor %}
 
+                {% if modo == 'registro' %}
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="terminos" name="terminos" required>
+                        <label class="form-check-label small" for="terminos">
+                            Acepto los <a href="#" class="text-danger">Términos y Condiciones</a> y la <a href="#" class="text-danger">Política de Privacidad</a>
+                        </label>
+                    </div>
+                {% endif %}
+
                 <button type="submit" class="btn btn-auth w-100">
                     <i class="bi {% if modo == 'login' %}bi-box-arrow-in-right{% else %}bi-person-plus-fill{% endif %} me-2"></i>
-                    {% if modo == 'login' %}Entrar{% else %}Crear Cuenta{% endif %}
+                    {% if modo == 'login' %}Entrar{% else %}Crear Mi Cuenta{% endif %}
                 </button>
             </form>
-        </div>
 
-        <div class="auth-card-footer">
-            {% if modo == 'login' %}
-                <small class="text-muted">¿No tienes cuenta?
-                    <a href="{% url 'register' %}">Regístrate aquí</a>
-                </small>
-            {% else %}
-                <small class="text-muted">¿Ya tienes cuenta?
-                    <a href="{% url 'login' %}">Inicia sesión</a>
-                </small>
-            {% endif %}
+            <div class="auth-divider">
+                <span>o continúa con</span>
+            </div>
+
+            <div class="social-login">
+                <button type="button" class="btn btn-social btn-google" onclick="showToast('Próximamente: Login con Google', 'info')">
+                    <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Google
+                </button>
+                <button type="button" class="btn btn-social btn-github" onclick="showToast('Próximamente: Login con GitHub', 'info')">
+                    <i class="bi bi-github me-2"></i>GitHub
+                </button>
+            </div>
+
+            <div class="switch-mode-text">
+                {% if modo == 'login' %}
+                ¿No tienes cuenta? <a href="{% url 'register' %}">Regístrate aquí</a>
+                {% else %}
+                ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Toast Container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 9999" id="toast-container"></div>
+
+<style>
+/* Animaciones adicionales para login */
+@keyframes floatShirt {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-15px) rotate(2deg); }
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 30px rgba(211,47,47,0.3); }
+    50% { box-shadow: 0 0 60px rgba(211,47,47,0.6); }
+}
+
+.shirt-container { animation: floatShirt 6s ease-in-out infinite; }
+.brand-badge { animation: pulseGlow 3s ease-in-out infinite; }
+
+/* Validación visual */
+.form-control.is-invalid, .form-select.is-invalid {
+    border-color: var(--rojo) !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23D32F2F'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23D32F2F'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 18px 18px;
+}
+
+.form-control.is-valid, .form-select.is-valid {
+    border-color: #28a745 !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' width='8' height='8' fill='none' stroke='%2328a745'%3e%3cpath d='M2.3 4.3l1.7 1.7 3.4-3.4'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 18px 18px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('auth-form');
+    const inputs = form.querySelectorAll('.form-control, .form-select');
+
+    // Validación en tiempo real
+    inputs.forEach(input => {
+        input.addEventListener('blur', function() {
+            validateField(this);
+        });
+        input.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid')) {
+                validateField(this);
+            }
+        });
+    });
+
+    function validateField(field) {
+        const value = field.value.trim();
+        let isValid = true;
+        let message = '';
+
+        if (field.hasAttribute('required') && !value) {
+            isValid = false;
+            message = 'Este campo es obligatorio.';
+        } else if (field.type === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+            isValid = false;
+            message = 'Email inválido.';
+        } else if (field.name === 'username' && value && !/^[a-zA-Z0-9_]{3,30}$/.test(value)) {
+            isValid = false;
+            message = 'Solo letras, números y _ (3-30 chars).';
+        } else if (field.name === 'password1' && value && !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}/.test(value)) {
+            isValid = false;
+            message = 'Mín 8 chars, mayús, minús, num, símbolo.';
+        } else if (field.name === 'password2' && value && value !== form.querySelector('[name="password1"]').value) {
+            isValid = false;
+            message = 'Las contraseñas no coinciden.';
+        } else if (field.name === 'first_name' || field.name === 'last_name') {
+            if (value && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]{2,50}$/.test(value)) {
+                isValid = false;
+                message = 'Solo letras y espacios (2-50 chars).';
+            }
+        }
+
+        field.classList.toggle('is-invalid', !isValid);
+        field.classList.toggle('is-valid', isValid && value);
+
+        let feedback = field.parentNode.querySelector('.invalid-feedback');
+        if (!isValid && message) {
+            if (!feedback) {
+                feedback = document.createElement('div');
+                feedback.className = 'invalid-feedback d-block';
+                field.parentNode.appendChild(feedback);
+            }
+            feedback.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${message}`;
+        }
+    }
+
+    // Envío del formulario
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+        inputs.forEach(input => {
+            validateField(input);
+            if (input.classList.contains('is-invalid')) hasErrors = true;
+        });
+
+        const terminos = form.querySelector('#terminos');
+        if (terminos && !terminos.checked) {
+            hasErrors = true;
+            showToast('Debes aceptar los términos y condiciones', 'error');
+        }
+
+        if (hasErrors) {
+            e.preventDefault();
+            const firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) firstInvalid.focus();
+        }
+    });
+
+    // Toast notifications
+    window.showToast = function(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        const icons = {
+            success: 'bi-check-circle-fill',
+            error: 'bi-exclamation-triangle-fill',
+            info: 'bi-info-circle-fill',
+            warning: 'bi-exclamation-triangle-fill'
+        };
+        const colors = {
+            success: 'border-left: 4px solid #28a745',
+            error: 'border-left: 4px solid #D32F2F',
+            info: 'border-left: 4px solid #17a2b8',
+            warning: 'border-left: 4px solid #ffc107'
+        };
+
+        toast.className = 'toast align-items-center text-white bg-dark border-0 shadow-lg mb-2';
+        toast.style.cssText = colors[type] || colors.success;
+        toast.setAttribute('role', 'alert');
+        toast.innerHTML = `
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center">
+                    <i class="bi ${icons[type]} me-2 fs-5"></i>
+                    <span>${message}</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        `;
+        container.appendChild(toast);
+        const bsToast = new bootstrap.Toast(toast, { delay: 4000 });
+        bsToast.show();
+        toast.addEventListener('hidden.bs.toast', () => toast.remove());
+    };
+
+    // Mostrar mensajes de Django como toasts
+    {% if messages %}
+        {% for message in messages %}
+            showToast("{{ message|escapejs }}", "{{ message.tags }}");
+        {% endfor %}
+    {% endif %}
+});
+</script>
 {% endblock %}
