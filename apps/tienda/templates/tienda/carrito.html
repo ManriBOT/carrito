@@ -1,0 +1,59 @@
+{% extends "tienda/base.html" %}
+{% block title %}Carrito{% endblock %}
+{% block content %}
+<div class="carrito">
+    <h1 class="carrito-title">Tu Carrito</h1>
+    {% if items %}
+        <div class="carrito-tabla-wrapper">
+            <table class="carrito-tabla">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Color</th>
+                        <th>Talla</th>
+                        <th>Precio Unit.</th>
+                        <th>Cant.</th>
+                        <th>Subtotal</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                        <tr>
+                            <td>{{ item.producto.nombre }}</td>
+                            <td>{{ item.producto.color }}</td>
+                            <td>{{ item.producto.talla }}</td>
+                            <td>${{ item.precio_unitario }}</td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>${{ item.subtotal|floatformat:2 }}</td>
+                            <td>
+                                <form method="POST" action="{% url 'eliminar_item' item.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn--danger btn--small">Eliminar</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="carrito-resumen">
+            <div class="carrito-subtotal">
+                <span class="subtotal-label">Subtotal Total:</span>
+                <span class="subtotal-valor">${{ subtotal|floatformat:2 }}</span>
+            </div>
+            <div class="carrito-acciones">
+                <form method="POST" action="{% url 'vaciar_carrito' %}" id="vaciar-form">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn--danger btn--full" id="btn-vaciar">Vaciar Carrito</button>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <div class="carrito-vacio">
+            <p>Tu carrito está vacío.</p>
+            <a href="{% url 'catalogo' %}" class="btn btn--primary">Ir al Catálogo</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
