@@ -1,0 +1,37 @@
+{% extends "tienda/base.html" %}
+{% block title %}{{ modo|title }}{% endblock %}
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h1 class="auth-title">
+            {% if modo == 'login' %}Iniciar Sesión{% else %}Crear Cuenta{% endif %}
+        </h1>
+        <form method="POST" class="auth-form">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="form-group">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="field-errors">
+                            {% for error in field.errors %}
+                                <span class="field-error">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn--primary btn--full">
+                {% if modo == 'login' %}Entrar{% else %}Registrarse{% endif %}
+            </button>
+        </form>
+        <p class="auth-switch">
+            {% if modo == 'login' %}
+                ¿No tienes cuenta? <a href="{% url 'register' %}">Regístrate aquí</a>
+            {% else %}
+                ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
+            {% endif %}
+        </p>
+    </div>
+</div>
+{% endblock %}
