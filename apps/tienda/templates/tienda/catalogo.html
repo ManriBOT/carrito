@@ -1,32 +1,83 @@
 {% extends "tienda/base.html" %}
 {% block title %}Catálogo{% endblock %}
 {% block content %}
-<div class="catalogo">
-    <h1 class="catalogo-title">Catálogo de Camisas</h1>
-    <div class="productos-grid">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h1 class="fw-bold text-uppercase text-dark mb-0 fs-2">
+        <i class="bi bi-grid text-danger me-2"></i>Catálogo
+    </h1>
+    <button class="btn btn-dark rounded-0 fw-semibold" data-bs-toggle="modal" data-bs-target="#modalAgregar">
+        <i class="bi bi-plus-lg me-1"></i>Agregar Producto
+    </button>
+</div>
+
+{% if productos %}
+    <div class="row g-4">
         {% for producto in productos %}
-            <div class="producto-card">
-                <div class="producto-color" style="background-color:
-                    {% if producto.color == 'Rojo' %}#D32F2F
-                    {% elif producto.color == 'Negro' %}#1A1A1A
-                    {% else %}#FFFFFF{% endif %};">
-                </div>
-                <div class="producto-info">
-                    <h2 class="producto-nombre">{{ producto.nombre }}</h2>
-                    <div class="producto-detalles">
-                        <span class="producto-detalle">Color: <strong>{{ producto.color }}</strong></span>
-                        <span class="producto-detalle">Talla: <strong>{{ producto.talla }}</strong></span>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="card h-100 shadow-sm border-0 rounded-0 product-card">
+                    <div class="product-color-bar" style="height: 10px; background-color:
+                        {% if producto.color == 'Rojo' %}#D32F2F
+                        {% elif producto.color == 'Negro' %}#1A1A1A
+                        {% else %}#e9ecef{% endif %};">
                     </div>
-                    <p class="producto-precio">${{ producto.precio }}</p>
-                    <form method="POST" action="{% url 'agregar_carrito' %}" class="producto-form">
-                        {% csrf_token %}
-                        <input type="hidden" name="producto_id" value="{{ producto.id }}">
-                        <input type="hidden" name="cantidad" value="1">
-                        <button type="submit" class="btn btn--primary btn--full">Agregar al Carrito</button>
-                    </form>
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title fw-bold text-dark">{{ producto.nombre }}</h5>
+                        <div class="d-flex gap-3 mb-2 small">
+                            <span class="badge bg-dark rounded-0">Color: {{ producto.color }}</span>
+                            <span class="badge bg-danger rounded-0">Talla: {{ producto.talla }}</span>
+                        </div>
+                        {% if producto.descripcion %}
+                            <p class="card-text text-muted small flex-grow-1">{{ producto.descripcion }}</p>
+                        {% else %}
+                            <p class="card-text text-muted small flex-grow-1"><em>Sin descripción</em></p>
+                        {% endif %}
+                        <hr class="my-2">
+                        <form method="POST" action="{% url 'agregar_carrito' %}" class="mt-auto">
+                            {% csrf_token %}
+                            <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                            <input type="hidden" name="cantidad" value="1">
+                            <button type="submit" class="btn btn-danger w-100 rounded-0 fw-semibold">
+                                <i class="bi bi-cart-plus me-1"></i>Agregar al Carrito
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-box-seam display-1 text-muted"></i>
+        <h3 class="mt-3 text-muted">No hay productos en el catálogo</h3>
+        <p class="text-muted">Agrega tu primer producto usando el botón "Agregar Producto".</p>
+    </div>
+{% endif %}
+
+<div class="modal fade" id="modalAgregar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-0 border-0 shadow">
+            <div class="modal-header bg-dark text-white rounded-0 border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle text-danger me-2"></i>Nuevo Producto</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'agregar_producto' %}">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    {% for field in producto_form %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase">{{ field.label }}</label>
+                            {{ field }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="modal-footer bg-light border-0">
+                    <button type="button" class="btn btn-outline-dark rounded-0" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger rounded-0 fw-bold px-4">
+                        <i class="bi bi-cloud-upload me-1"></i>Publicar
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

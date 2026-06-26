@@ -1,37 +1,44 @@
 {% extends "tienda/base.html" %}
 {% block title %}{{ modo|title }}{% endblock %}
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <h1 class="auth-title">
-            {% if modo == 'login' %}Iniciar Sesión{% else %}Crear Cuenta{% endif %}
-        </h1>
-        <form method="POST" class="auth-form">
-            {% csrf_token %}
-            {% for field in form %}
-                <div class="form-group">
-                    {{ field.label_tag }}
-                    {{ field }}
-                    {% if field.errors %}
-                        <div class="field-errors">
-                            {% for error in field.errors %}
-                                <span class="field-error">{{ error }}</span>
-                            {% endfor %}
+<div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+    <div class="col-11 col-sm-8 col-md-6 col-lg-4">
+        <div class="card shadow-lg border-0 rounded-0">
+            <div class="card-header bg-dark text-white text-center py-3 rounded-0 border-0">
+                <i class="bi {% if modo == 'login' %}bi-box-arrow-in-right{% else %}bi-person-plus{% endif %} fs-2 d-block mb-1 text-danger"></i>
+                <h4 class="mb-0 fw-bold">
+                    {% if modo == 'login' %}Iniciar Sesión{% else %}Crear Cuenta{% endif %}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold small text-uppercase">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                                <div class="mt-1">
+                                    {% for error in field.errors %}
+                                        <small class="text-danger d-block"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
-                    {% endif %}
-                </div>
-            {% endfor %}
-            <button type="submit" class="btn btn--primary btn--full">
-                {% if modo == 'login' %}Entrar{% else %}Registrarse{% endif %}
-            </button>
-        </form>
-        <p class="auth-switch">
-            {% if modo == 'login' %}
-                ¿No tienes cuenta? <a href="{% url 'register' %}">Regístrate aquí</a>
-            {% else %}
-                ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
-            {% endif %}
-        </p>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-danger w-100 fw-bold py-2 rounded-0 text-uppercase">
+                        {% if modo == 'login' %}<i class="bi bi-box-arrow-in-right me-2"></i>Entrar{% else %}<i class="bi bi-person-plus me-2"></i>Registrarse{% endif %}
+                    </button>
+                </form>
+            </div>
+            <div class="card-footer bg-light text-center py-3 rounded-0 border-0">
+                {% if modo == 'login' %}
+                    <small class="text-muted">¿No tienes cuenta? <a href="{% url 'register' %}" class="text-danger fw-bold">Regístrate aquí</a></small>
+                {% else %}
+                    <small class="text-muted">¿Ya tienes cuenta? <a href="{% url 'login' %}" class="text-danger fw-bold">Inicia sesión</a></small>
+                {% endif %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -1,10 +1,9 @@
-import random
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib import messages
-from .forms import RegistroForm, LoginForm, AgregarCarritoForm
+from .forms import RegistroForm, LoginForm, AgregarCarritoForm, ProductoForm
 from .services import (
     agregar_al_carrito,
     eliminar_item,
@@ -21,9 +20,9 @@ def register_view(request):
     if request.method == 'POST':
         form = RegistroForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('catalogo')
+            form.save()
+            messages.success(request, 'Cuenta creada exitosamente. Ahora inicia sesión.')
+            return redirect('login')
     else:
         form = RegistroForm()
     return render(request, 'tienda/login.html', {'form': form, 'modo': 'registro'})
@@ -43,6 +42,7 @@ def login_view(request):
     return render(request, 'tienda/login.html', {'form': form, 'modo': 'login'})
 
 
+@require_http_methods(['GET', 'POST'])
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -50,27 +50,28 @@ def logout_view(request):
 
 @login_required
 def catalogo_view(request):
-    colores = ['Rojo', 'Blanco', 'Negro']
-    tallas = ['S', 'M', 'L', 'XL']
-    productos = []
-    nombres_base = ['Camisa Clásica', 'Camisa Slim Fit', 'Camisa Oversize']
-    for i, nombre in enumerate(nombres_base):
-        producto, created = Producto.objects.get_or_create(
-            nombre=nombre,
-            defaults={
-                'color': random.choice(colores),
-                'talla': random.choice(tallas),
-                'precio': round(random.uniform(15.0, 45.0), 2),
-            },
-        )
-        if not created:
-            producto.color = random.choice(colores)
-            producto.talla = random.choice(tallas)
-            producto.precio = round(random.uniform(15.0, 45.0), 2)
-            producto.save()
-        productos.append(producto)
+    productos = Producto.objects.filter(activo=True).order_by('-creado')
     form = AgregarCarritoForm()
-    return render(request, 'tienda/catalogo.html', {'productos': productos, 'form': form})
+    producto_form = ProductoForm()
+    return render(request, 'tienda/catalogo.html', {
+        'productos': productos,
+        'form': form,
+        'producto_form': producto_form,
+    })
+
+
+@login_required
+@require_POST
+def agregar_producto_view(request):
+    form = ProductoForm(request.POST)
+    if form.is_valid():
+        producto = form.save(commit=False)
+        producto.precio = 0
+        producto.save()
+        messages.success(request, 'Producto publicado en el catálogo.')
+    else:
+        messages.error(request, 'Error al publicar el producto. Revisa los campos.')
+    return redirect('catalogo')
 
 
 @login_required

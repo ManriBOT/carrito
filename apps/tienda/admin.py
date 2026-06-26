@@ -4,7 +4,7 @@ from .models import Producto, Carrito, CarritoItem
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'color', 'talla', 'precio', 'activo')
+    list_display = ('nombre', 'color', 'talla', 'precio', 'descripcion', 'activo')
     list_filter = ('color', 'talla', 'activo')
     search_fields = ('nombre',)
 

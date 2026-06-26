@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+from .models import Producto
 
 
 class RegistroForm(UserCreationForm):
@@ -9,7 +10,7 @@ class RegistroForm(UserCreationForm):
         max_length=30,
         min_length=3,
         strip=True,
-        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Nombre de usuario'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de usuario'}),
         error_messages={
             'required': 'El nombre de usuario es obligatorio.',
             'min_length': 'El nombre de usuario debe tener al menos 3 caracteres.',
@@ -21,7 +22,7 @@ class RegistroForm(UserCreationForm):
         min_length=8,
         max_length=128,
         strip=False,
-        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Contraseña'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'}),
         error_messages={
             'required': 'La contraseña es obligatoria.',
             'min_length': 'La contraseña debe tener al menos 8 caracteres.',
@@ -32,7 +33,7 @@ class RegistroForm(UserCreationForm):
         min_length=8,
         max_length=128,
         strip=False,
-        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Repite la contraseña'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Repite la contraseña'}),
         error_messages={
             'required': 'Debes confirmar la contraseña.',
         },
@@ -48,13 +49,13 @@ class LoginForm(AuthenticationForm):
         label='Usuario',
         max_length=30,
         strip=True,
-        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Nombre de usuario'}),
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de usuario'}),
         error_messages={'required': 'El nombre de usuario es obligatorio.'},
     )
     password = forms.CharField(
         label='Contraseña',
         strip=False,
-        widget=forms.PasswordInput(attrs={'class': 'form-input', 'placeholder': 'Contraseña'}),
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'}),
         error_messages={'required': 'La contraseña es obligatoria.'},
     )
 
@@ -70,7 +71,24 @@ class AgregarCarritoForm(forms.Form):
 
     def clean_producto_id(self):
         producto_id = self.cleaned_data['producto_id']
-        from .models import Producto
         if not Producto.objects.filter(id=producto_id, activo=True).exists():
             raise forms.ValidationError('El producto no existe o no está disponible.')
         return producto_id
+
+
+class ProductoForm(forms.ModelForm):
+    class Meta:
+        model = Producto
+        fields = ['nombre', 'talla', 'color', 'descripcion']
+        widgets = {
+            'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del producto'}),
+            'talla': forms.Select(attrs={'class': 'form-select'}),
+            'color': forms.Select(attrs={'class': 'form-select'}),
+            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descripción del producto', 'rows': 3}),
+        }
+        labels = {
+            'nombre': 'Nombre del Producto',
+            'talla': 'Talla',
+            'color': 'Color',
+            'descripcion': 'Descripción',
+        }

@@ -1,20 +1,21 @@
 document.addEventListener('DOMContentLoaded', function () {
     var messagesContainer = document.getElementById('messages-container');
     if (messagesContainer) {
-        var messages = messagesContainer.querySelectorAll('.message');
-        messages.forEach(function (msg) {
-            if (msg.textContent.trim().indexOf('ACCION_VACIADO_EXITOSA') !== -1) {
-                msg.textContent = 'Carrito vaciado exitosamente.';
-                msg.style.borderColor = '#1A1A1A';
-                msg.style.color = '#1A1A1A';
+        var alerts = messagesContainer.querySelectorAll('.alert');
+        alerts.forEach(function (alert) {
+            var textEl = alert.querySelector('i') ? alert.nextSibling : alert;
+            var text = alert.textContent || alert.innerText;
+            if (text.indexOf('ACCION_VACIADO_EXITOSA') !== -1) {
+                alert.classList.remove('alert-success');
+                alert.classList.add('alert-success');
+                var icon = alert.querySelector('i');
+                if (icon) icon.className = 'bi bi-check-circle-fill me-2';
+                alert.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>Carrito vaciado exitosamente.<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
             }
             setTimeout(function () {
-                msg.style.opacity = '0';
-                msg.style.transition = 'opacity 0.5s ease';
-                setTimeout(function () {
-                    msg.remove();
-                }, 500);
-            }, 4000);
+                var bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            }, 5000);
         });
     }
 });
