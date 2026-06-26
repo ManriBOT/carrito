@@ -1,0 +1,32 @@
+{% extends "tienda/base.html" %}
+{% block title %}Catálogo{% endblock %}
+{% block content %}
+<div class="catalogo">
+    <h1 class="catalogo-title">Catálogo de Camisas</h1>
+    <div class="productos-grid">
+        {% for producto in productos %}
+            <div class="producto-card">
+                <div class="producto-color" style="background-color:
+                    {% if producto.color == 'Rojo' %}#D32F2F
+                    {% elif producto.color == 'Negro' %}#1A1A1A
+                    {% else %}#FFFFFF{% endif %};">
+                </div>
+                <div class="producto-info">
+                    <h2 class="producto-nombre">{{ producto.nombre }}</h2>
+                    <div class="producto-detalles">
+                        <span class="producto-detalle">Color: <strong>{{ producto.color }}</strong></span>
+                        <span class="producto-detalle">Talla: <strong>{{ producto.talla }}</strong></span>
+                    </div>
+                    <p class="producto-precio">${{ producto.precio }}</p>
+                    <form method="POST" action="{% url 'agregar_carrito' %}" class="producto-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="producto_id" value="{{ producto.id }}">
+                        <input type="hidden" name="cantidad" value="1">
+                        <button type="submit" class="btn btn--primary btn--full">Agregar al Carrito</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
