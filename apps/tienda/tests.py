@@ -1,8 +1,8 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from decimal import Decimal
-from .models import Producto, Carrito, CarritoItem
-from .services import (
+from apps.tienda.models import Producto, Carrito, CarritoItem
+from apps.tienda.services import (
     obtener_carrito,
     agregar_al_carrito,
     calcular_subtotal,
