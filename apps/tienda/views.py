@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from django.views.decorators.http import require_POST, require_http_methods
 from django.contrib import messages
 from .forms import RegistroForm, LoginForm, AgregarCarritoForm, ProductoForm
+from .decorators import rate_limit
 from .services import (
     agregar_al_carrito,
     eliminar_item,
@@ -28,6 +29,7 @@ def register_view(request):
     return render(request, 'tienda/login.html', {'form': form, 'modo': 'registro'})
 
 
+@rate_limit(max_attempts=5, window=300)
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('catalogo')
