@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RED ESTAMPACION - {% block title %}Tienda{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <a href="{% url 'catalogo' %}" class="logo">RED <span>ESTAMPACION</span></a>
+            <nav class="nav">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'catalogo' %}" class="nav-link">Catálogo</a>
+                    <a href="{% url 'carrito' %}" class="nav-link">Carrito</a>
+                    <a href="{% url 'logout' %}" class="nav-link nav-link--logout">Cerrar Sesión</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-link">Iniciar Sesión</a>
+                    <a href="{% url 'register' %}" class="nav-link">Registrarse</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        {% if messages %}
+            <div class="messages" id="messages-container">
+                {% for message in messages %}
+                    <div class="message message--{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 RED ESTAMPACION. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>
