@@ -96,3 +96,44 @@ class FlujoCompletoTestCase(TestCase):
         })
         self.assertEqual(resp.status_code, 200)
         self.assertFalse(resp.context['form'].is_valid())
+
+    def test_carrito_independiente_por_usuario(self):
+        from apps.tienda.services import obtener_carrito
+        user1 = User.objects.create_user(username='user1', password='pass123')
+        user2 = User.objects.create_user(username='user2', password='pass123')
+        p = Producto.objects.create(nombre='Camisa', color='Rojo', talla='M')
+        carrito1 = obtener_carrito(user1)
+        CarritoItem.objects.create(carrito=carrito1, producto=p, cantidad=2, precio_unitario=p.precio)
+        carrito2 = obtener_carrito(user2)
+        self.assertEqual(carrito2.items.count(), 0)
+        self.assertEqual(CarritoItem.objects.filter(carrito=carrito1).count(), 1)
+        self.assertNotEqual(carrito1.id, carrito2.id)
+
+    def test_carrito_persiste_despues_de_logout_login(self):
+        from apps.tienda.services import obtener_carrito, agregar_al_carrito
+        user = User.objects.create_user(username='persist', password='pass123')
+        p = Producto.objects.create(nombre='Camisa Persist', color='Negro', talla='L')
+        carrito = obtener_carrito(user)
+        agregar_al_carrito(user, p.id, 1)
+        self.assertEqual(carrito.items.count(), 1)
+        self.client.login(username='persist', password='pass123')
+        self.client.post('/logout/', follow=True)
+        self.client.login(username='persist', password='pass123')
+        resp = self.client.get('/carrito/')
+        self.assertEqual(resp.status_code, 200)
+        items = resp.context.get('items')
+        self.assertIsNotNone(items)
+        self.assertEqual(len(items), 1)
+
+    def test_carrito_vacio_no_afecta_otros_usuarios(self):
+        from apps.tienda.services import obtener_carrito
+        user1 = User.objects.create_user(username='ua', password='pass123')
+        user2 = User.objects.create_user(username='ub', password='pass123')
+        p = Producto.objects.create(nombre='Camisa', color='Rojo', talla='M')
+        carrito1 = obtener_carrito(user1)
+        CarritoItem.objects.create(carrito=carrito1, producto=p, cantidad=1, precio_unitario=p.precio)
+        carrito2 = obtener_carrito(user2)
+        CarritoItem.objects.create(carrito=carrito2, producto=p, cantidad=3, precio_unitario=p.precio)
+        carrito1.items.all().delete()
+        self.assertEqual(carrito1.items.count(), 0)
+        self.assertEqual(carrito2.items.count(), 1)
