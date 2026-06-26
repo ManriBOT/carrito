@@ -11,8 +11,25 @@ CREATE DATABASE IF NOT EXISTS carrito
 USE carrito;
 
 -- =====================================================
--- TABLA: auth_user (Usuarios del sistema)
+-- TABLAS SIN DEPENDENCIAS (orden: primero las que no
+-- tienen FK a otras tablas del sistema)
 -- =====================================================
+
+-- 1. django_content_type
+CREATE TABLE IF NOT EXISTS django_content_type (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    app_label VARCHAR(100) NOT NULL,
+    model VARCHAR(100) NOT NULL,
+    UNIQUE KEY django_content_type_app_label_model_uniq (app_label, model)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 2. auth_group
+CREATE TABLE IF NOT EXISTS auth_group (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 3. auth_user
 CREATE TABLE IF NOT EXISTS auth_user (
     id INTEGER AUTO_INCREMENT PRIMARY KEY,
     password VARCHAR(128) NOT NULL,
@@ -28,51 +45,7 @@ CREATE TABLE IF NOT EXISTS auth_user (
     INDEX auth_user_username_idx (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =====================================================
--- TABLA: auth_group
--- =====================================================
-CREATE TABLE IF NOT EXISTS auth_group (
-    id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(150) NOT NULL UNIQUE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- =====================================================
--- TABLA: auth_group_permissions
--- =====================================================
-CREATE TABLE IF NOT EXISTS auth_group_permissions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    group_id INTEGER NOT NULL,
-    permission_id INTEGER NOT NULL,
-    UNIQUE KEY auth_group_permissions_group_id_permission_id_uniq (group_id, permission_id),
-    CONSTRAINT auth_group_permissions_group_fk FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
-    CONSTRAINT auth_group_permissions_permission_fk FOREIGN KEY (permission_id) REFERENCES auth_permission (id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- =====================================================
--- TABLA: auth_permission
--- =====================================================
-CREATE TABLE IF NOT EXISTS auth_permission (
-    id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    content_type_id INTEGER NOT NULL,
-    codename VARCHAR(100) NOT NULL,
-    UNIQUE KEY auth_permission_content_type_id_codename_uniq (content_type_id, codename),
-    CONSTRAINT auth_permission_content_type_fk FOREIGN KEY (content_type_id) REFERENCES django_content_type (id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- =====================================================
--- TABLA: django_content_type
--- =====================================================
-CREATE TABLE IF NOT EXISTS django_content_type (
-    id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    app_label VARCHAR(100) NOT NULL,
-    model VARCHAR(100) NOT NULL,
-    UNIQUE KEY django_content_type_app_label_model_uniq (app_label, model)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- =====================================================
--- TABLA: django_migrations
--- =====================================================
+-- 4. django_migrations
 CREATE TABLE IF NOT EXISTS django_migrations (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     app VARCHAR(255) NOT NULL,
@@ -80,9 +53,7 @@ CREATE TABLE IF NOT EXISTS django_migrations (
     applied DATETIME(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =====================================================
--- TABLA: django_session
--- =====================================================
+-- 5. django_session
 CREATE TABLE IF NOT EXISTS django_session (
     session_key VARCHAR(40) NOT NULL PRIMARY KEY,
     session_data LONGTEXT NOT NULL,
@@ -90,27 +61,7 @@ CREATE TABLE IF NOT EXISTS django_session (
     INDEX django_session_expire_date_idx (expire_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =====================================================
--- TABLA: django_admin_log
--- =====================================================
-CREATE TABLE IF NOT EXISTS django_admin_log (
-    id INTEGER AUTO_INCREMENT PRIMARY KEY,
-    action_time DATETIME(6) NOT NULL,
-    object_id LONGTEXT NULL,
-    object_repr VARCHAR(200) NOT NULL,
-    action_flag SMALLINT UNSIGNED NOT NULL,
-    change_message LONGTEXT NOT NULL,
-    content_type_id INTEGER NULL,
-    user_id INTEGER NOT NULL,
-    INDEX django_admin_log_content_type_id_idx (content_type_id),
-    INDEX django_admin_log_user_id_idx (user_id),
-    CONSTRAINT django_admin_log_content_type_fk FOREIGN KEY (content_type_id) REFERENCES django_content_type (id) ON DELETE SET NULL,
-    CONSTRAINT django_admin_log_user_fk FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- =====================================================
--- TABLA: tienda_producto (Catálogo de productos)
--- =====================================================
+-- 6. tienda_producto
 CREATE TABLE IF NOT EXISTS tienda_producto (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
@@ -126,20 +77,66 @@ CREATE TABLE IF NOT EXISTS tienda_producto (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================
--- TABLA: tienda_carrito (Carritos por usuario)
+-- TABLAS CON DEPENDENCIAS (1 FK)
 -- =====================================================
+
+-- 7. auth_permission (FK -> django_content_type)
+CREATE TABLE IF NOT EXISTS auth_permission (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    content_type_id INTEGER NOT NULL,
+    codename VARCHAR(100) NOT NULL,
+    UNIQUE KEY auth_permission_content_type_id_codename_uniq (content_type_id, codename),
+    CONSTRAINT auth_permission_content_type_fk
+        FOREIGN KEY (content_type_id) REFERENCES django_content_type (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 8. tienda_carrito (FK -> auth_user)
 CREATE TABLE IF NOT EXISTS tienda_carrito (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     usuario_id INTEGER NOT NULL UNIQUE,
     creado DATETIME(6) NOT NULL,
     actualizado DATETIME(6) NOT NULL,
-    CONSTRAINT tienda_carrito_usuario_fk FOREIGN KEY (usuario_id) REFERENCES auth_user (id) ON DELETE CASCADE,
+    CONSTRAINT tienda_carrito_usuario_fk
+        FOREIGN KEY (usuario_id) REFERENCES auth_user (id) ON DELETE CASCADE,
     INDEX tienda_carrito_usuario_idx (usuario_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================
--- TABLA: tienda_carritoitem (Items dentro del carrito)
+-- TABLAS CON 2+ FK
 -- =====================================================
+
+-- 9. auth_group_permissions (FK -> auth_group, auth_permission)
+CREATE TABLE IF NOT EXISTS auth_group_permissions (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    group_id INTEGER NOT NULL,
+    permission_id INTEGER NOT NULL,
+    UNIQUE KEY auth_group_permissions_group_id_permission_id_uniq (group_id, permission_id),
+    CONSTRAINT auth_group_permissions_group_fk
+        FOREIGN KEY (group_id) REFERENCES auth_group (id) ON DELETE CASCADE,
+    CONSTRAINT auth_group_permissions_permission_fk
+        FOREIGN KEY (permission_id) REFERENCES auth_permission (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 10. django_admin_log (FK -> django_content_type, auth_user)
+CREATE TABLE IF NOT EXISTS django_admin_log (
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    action_time DATETIME(6) NOT NULL,
+    object_id LONGTEXT NULL,
+    object_repr VARCHAR(200) NOT NULL,
+    action_flag SMALLINT UNSIGNED NOT NULL,
+    change_message LONGTEXT NOT NULL,
+    content_type_id INTEGER NULL,
+    user_id INTEGER NOT NULL,
+    INDEX django_admin_log_content_type_id_idx (content_type_id),
+    INDEX django_admin_log_user_id_idx (user_id),
+    CONSTRAINT django_admin_log_content_type_fk
+        FOREIGN KEY (content_type_id) REFERENCES django_content_type (id) ON DELETE SET NULL,
+    CONSTRAINT django_admin_log_user_fk
+        FOREIGN KEY (user_id) REFERENCES auth_user (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 11. tienda_carritoitem (FK -> tienda_carrito, tienda_producto)
 CREATE TABLE IF NOT EXISTS tienda_carritoitem (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     carrito_id BIGINT NOT NULL,
@@ -147,19 +144,21 @@ CREATE TABLE IF NOT EXISTS tienda_carritoitem (
     cantidad INTEGER UNSIGNED NOT NULL DEFAULT 1,
     precio_unitario DECIMAL(8, 2) NOT NULL,
     UNIQUE KEY tienda_carritoitem_carrito_producto_uniq (carrito_id, producto_id),
-    CONSTRAINT tienda_carritoitem_carrito_fk FOREIGN KEY (carrito_id) REFERENCES tienda_carrito (id) ON DELETE CASCADE,
-    CONSTRAINT tienda_carritoitem_producto_fk FOREIGN KEY (producto_id) REFERENCES tienda_producto (id) ON DELETE CASCADE,
+    CONSTRAINT tienda_carritoitem_carrito_fk
+        FOREIGN KEY (carrito_id) REFERENCES tienda_carrito (id) ON DELETE CASCADE,
+    CONSTRAINT tienda_carritoitem_producto_fk
+        FOREIGN KEY (producto_id) REFERENCES tienda_producto (id) ON DELETE CASCADE,
     INDEX tienda_carritoitem_carrito_idx (carrito_id),
     INDEX tienda_carritoitem_producto_idx (producto_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =====================================================
--- DATOS DE EJEMPLO: Productos iniciales del catálogo
+-- DATOS DE EJEMPLO
 -- =====================================================
 INSERT INTO tienda_producto (nombre, color, talla, descripcion, precio, activo, creado, actualizado) VALUES
-('Camisa Clásica', 'Rojo', 'M', 'Camisa clásica de algodón premium. Corte recto y botones reforzados.', 29.99, 1, NOW(), NOW()),
-('Camisa Slim Fit', 'Negro', 'L', 'Camisa ajustada de vestir. Ideal para ocasiones formales.', 34.99, 1, NOW(), NOW()),
-('Camisa Oversize', 'Blanco', 'XL', 'Camisa holgada de estilo urbano. Corte moderno y cómodo.', 24.99, 1, NOW(), NOW());
+('Camisa Clásica', 'Rojo', 'M',  'Camisa clásica de algodón premium. Corte recto y botones reforzados.',   29.99, 1, NOW(), NOW()),
+('Camisa Slim Fit', 'Negro', 'L', 'Camisa ajustada de vestir. Ideal para ocasiones formales.',             34.99, 1, NOW(), NOW()),
+('Camisa Oversize', 'Blanco', 'XL', 'Camisa holgada de estilo urbano. Corte moderno y cómodo.',            24.99, 1, NOW(), NOW());
 
 -- =====================================================
 -- FIN DEL SCRIPT
