@@ -56,5 +56,10 @@ class CarritoItem(models.Model):
         verbose_name_plural = 'Ítems del carrito'
         unique_together = ('carrito', 'producto')
 
+    @property
+    def subtotal(self):
+        from decimal import Decimal
+        return Decimal(str(self.cantidad)) * self.precio_unitario
+
     def __str__(self):
         return f'{self.cantidad}x {self.producto.nombre}'
